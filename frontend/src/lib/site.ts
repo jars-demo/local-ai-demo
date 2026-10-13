@@ -34,10 +34,3 @@ export const NAV: NavItem[] = [
   { href: '/workshop/', label: 'Workshop' },
   { href: '/deploy/', label: 'Offline deployment' },
 ]
-
-export const JARS_LINKS = [
-  { href: 'https://github.com/jars-demo', label: 'JARS Demo on GitHub' },
-  { href: 'https://github.com/jars-demo/jars-skills', label: 'JARS Skills' },
-  { href: 'https://skills.jishanahmed.in', label: 'skills.jishanahmed.in' },
-  { href: 'https://jishanahmed.in', label: 'Jishanahmed' },
-] as const

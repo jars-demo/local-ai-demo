@@ -4,7 +4,7 @@ import { StackStatus } from '@/components/StackStatus'
 import { Badge, Section } from '@/components/ui'
 import { CHAPTERS, PARTS, TOTAL_MINUTES, type Part } from '@/lib/chapters'
 import { MEASURED, RECORDED_ANSWER } from '@/lib/measurements'
-import { IS_STATIC_SITE, JARS_LINKS, REPO_URL, VERSIONS } from '@/lib/site'
+import { IS_STATIC_SITE, REPO_URL, VERSIONS } from '@/lib/site'
 
 const TECH = ['Next.js', 'FastAPI', 'PostgreSQL', 'Ollama', VERSIONS.model, 'Docker Compose']
 
@@ -315,7 +315,7 @@ export default function HomePage() {
           </div>
         </Section>
 
-        <Section id="links" title="Source and resources">
+        <Section id="links" title="Where to go next">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <a href={REPO_URL} target="_blank" rel="noreferrer" className="card p-4 hover:border-accent">
               <p className="font-semibold">Source code</p>
@@ -329,18 +329,6 @@ export default function HomePage() {
               <p className="font-semibold">Offline deployment</p>
               <p className="text-sm text-muted">The operator guide that ships in the bundle</p>
             </a>
-            {JARS_LINKS.slice(0, 2).map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                target="_blank"
-                rel="noreferrer"
-                className="card p-4 hover:border-accent"
-              >
-                <p className="font-semibold">{link.label}</p>
-                <p className="text-sm text-muted">{link.href.replace('https://', '')}</p>
-              </a>
-            ))}
             <a
               href="https://ollama.com/library/qwen3"
               target="_blank"
