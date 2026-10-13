@@ -57,6 +57,11 @@ export class ApiError extends Error {
   }
 }
 
+export const NO_BACKEND_MESSAGE =
+  'This website is the static workshop site: it has no backend, database or model behind it.'
+export const NO_BACKEND_HINT =
+  'Run the stack on your machine (docker compose up -d --build --wait) and open http://localhost:3000.'
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   let response: Response
   try {
@@ -69,6 +74,12 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     throw new ApiError('The backend is not reachable.', 0, 'NETWORK', 'Is the stack running? docker compose ps')
   }
   if (response.status === 204) return undefined as T
+  // No backend behind this site (a static host such as Vercel): /api is a 404 page or a redirect,
+  // not this API's JSON. Say so plainly instead of reporting an HTTP error.
+  const isJson = response.headers.get('content-type')?.includes('application/json') ?? false
+  if (!isJson && (response.status === 404 || response.redirected || response.status < 400)) {
+    throw new ApiError(NO_BACKEND_MESSAGE, response.status, 'NO_BACKEND', NO_BACKEND_HINT)
+  }
   const data = await response.json().catch(() => null)
   if (!response.ok) {
     const error = data?.error

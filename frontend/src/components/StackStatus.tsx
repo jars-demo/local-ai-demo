@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 
 import { ApiError, api, formatBytes, type ModelInfo, type Ready } from '@/lib/api'
 
+import { NoBackend } from './NoBackend'
 import { ErrorNote, Spinner, Status } from './ui'
 
 type State =
   | { kind: 'loading' }
-  | { kind: 'error'; message: string; hint?: string }
+  | { kind: 'error'; message: string; hint?: string; code?: string }
   | { kind: 'ok'; ready: Ready; model: ModelInfo | null }
 
 const LABELS: Record<string, string> = {
@@ -31,7 +32,7 @@ export function StackStatus() {
       } catch (e) {
         if (cancelled) return
         const error = e instanceof ApiError ? e : null
-        setState({ kind: 'error', message: error?.message ?? 'Unexpected error', hint: error?.hint })
+        setState({ kind: 'error', message: error?.message ?? 'Unexpected error', hint: error?.hint, code: error?.code })
       }
     }
     load()
@@ -47,6 +48,7 @@ export function StackStatus() {
       </p>
     )
   }
+  if (state.kind === 'error' && state.code === 'NO_BACKEND') return <NoBackend />
   if (state.kind === 'error') {
     return <ErrorNote title="Could not reach the backend" message={state.message} hint={state.hint} />
   }

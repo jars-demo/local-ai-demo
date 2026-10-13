@@ -14,6 +14,7 @@ import {
   type Ready,
 } from '@/lib/api'
 
+import { NoBackend } from './NoBackend'
 import { Badge, Button, Empty, ErrorNote, Spinner, Status } from './ui'
 
 type Failure = { message: string; hint?: string; code?: string }
@@ -339,6 +340,8 @@ export function NotesApp() {
   }, [loadNotes])
 
   const current = selected === 'new' ? null : (notes?.find((n) => n.id === selected) ?? null)
+
+  if (stackError?.code === 'NO_BACKEND' || loadError?.code === 'NO_BACKEND') return <NoBackend />
 
   return (
     <div className="space-y-6">
