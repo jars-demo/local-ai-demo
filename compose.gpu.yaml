@@ -1,0 +1,30 @@
+# Optional: NVIDIA GPU inference. Needs the NVIDIA driver and the NVIDIA Container Toolkit on the
+# host. Swaps the slim CPU-only Ollama image for the official one (about 5.6 GB, with CUDA).
+#
+#   docker compose -f compose.yaml -f compose.gpu.yaml up -d --wait
+#
+# On an offline server the official image must be in the bundle: build it with
+#   ./scripts/build-bundle.sh --with-gpu
+
+services:
+  ollama:
+    image: ollama/ollama:${OLLAMA_VERSION:-0.40.3}
+    # The official image runs as root by default; keep the same unprivileged user as the slim
+    # image so the shared model volume keeps one owner.
+    user: "10001:10001"
+    environment:
+      OLLAMA_MODELS: /models
+      HOME: /tmp
+    healthcheck:
+      test: ["CMD", "/bin/ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 6
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

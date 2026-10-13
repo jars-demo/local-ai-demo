@@ -1,0 +1,119 @@
+# Local AI Notes Assistant: the runtime stack.
+#
+#   docker compose up -d --wait
+#
+# This file is the deployment contract. It only names images, never builds them, so the same file
+# runs on your laptop (where compose.override.yaml adds the build steps) and, unchanged, on an
+# offline server (where the images come from `docker load` and nothing is ever pulled).
+#
+#   browser ──► web (nginx: site + /api proxy) ──► backend (FastAPI) ──► postgres (notes)
+#                                                                  └──► ollama   (local model)
+#
+# Networks
+#   edge     web only. The one published port, bound to 127.0.0.1 unless WEB_BIND says otherwise.
+#   private  internal: true. backend, postgres and ollama live here. Docker gives this network no
+#            route to the outside world, so these containers cannot reach the internet even when
+#            the host can. Containers find each other by service name (Docker DNS), never localhost.
+
+name: local-ai-demo
+
+x-hardening: &hardening
+  restart: unless-stopped
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  read_only: true
+  tmpfs: [/tmp]
+
+services:
+  web:
+    <<: *hardening
+    image: local-ai-demo-web:${APP_VERSION:-1.0.0}
+    ports:
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-3000}:8080"
+    networks: [edge, private]
+    depends_on:
+      backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 64m
+
+  backend:
+    <<: *hardening
+    image: local-ai-demo-backend:${APP_VERSION:-1.0.0}
+    init: true
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: notes
+      POSTGRES_USER: notes
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (copy .env.example)}
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:0.6b}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-180}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    networks: [private]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  postgres:
+    <<: *hardening
+    image: postgres:18.6-alpine3.24
+    # The image's own `postgres` user (uid 70). The data volume inherits that ownership on first
+    # use, so the entrypoint never needs root.
+    user: "70:70"
+    tmpfs: [/tmp, /var/run/postgresql]
+    environment:
+      POSTGRES_DB: notes
+      POSTGRES_USER: notes
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (copy .env.example)}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks: [private]
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=notes", "--dbname=notes", "--host=127.0.0.1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  ollama:
+    <<: *hardening
+    image: local-ai-demo-ollama:${OLLAMA_VERSION:-0.40.3}
+    init: true
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m          # keep the model in memory between questions
+      OLLAMA_NUM_PARALLEL: "1"        # one inference at a time; others queue (CPU friendly)
+      OLLAMA_CONTEXT_LENGTH: "4096"
+      OLLAMA_NO_CLOUD: "1"            # no remote inference or web search, ever
+      OLLAMA_NOPRUNE: "1"             # the model store is read-only at runtime (see below)
+    # Read-only: the running stack can load the model but can never add, change or delete one.
+    # Models are installed by ./scripts/pull-model.sh (connected) or the offline bundle.
+    volumes:
+      - ollama-models:/models:ro
+    networks: [private]
+    deploy:
+      resources:
+        limits:
+          memory: ${OLLAMA_MEMORY_LIMIT:-3g}
+
+networks:
+  edge: {}
+  private:
+    internal: true
+
+volumes:
+  postgres-data:
+    name: local-ai-demo-postgres-data
+  ollama-models:
+    name: local-ai-demo-ollama-models

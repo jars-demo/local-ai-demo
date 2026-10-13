@@ -1,0 +1,33 @@
+# Development additions, loaded automatically by `docker compose` next to compose.yaml.
+# It only adds build steps and a test runner. The offline bundle ships compose.yaml without this
+# file, so the target server can never build or pull: it runs exactly the images it was given.
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+
+  backend:
+    build:
+      context: backend
+      target: runtime
+
+  ollama:
+    build:
+      context: ollama
+
+  # Integration tests against the real PostgreSQL, in their own database (notes_test), so your
+  # notes are never touched:  docker compose --profile test run --rm backend-test
+  backend-test:
+    profiles: [test]
+    build:
+      context: backend
+      target: test
+    image: local-ai-demo-backend-test:dev
+    environment:
+      DATABASE_URL: postgresql://notes:${POSTGRES_PASSWORD}@postgres:5432/notes_test
+    networks: [private]
+    depends_on:
+      postgres:
+        condition: service_healthy
