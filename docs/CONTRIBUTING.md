@@ -59,3 +59,11 @@ Scripts: `shellcheck -x -P SCRIPTDIR scripts/*.sh`. End to end: `./scripts/build
 Run `./scripts/diagnose.sh`, review the output (it never prints the database password, but check it
 for anything else you consider private), and attach it to the issue with your OS, Docker version and
 what you ran.
+
+## Deploying the public site (Vercel)
+
+The public site is the static build (`npm run build:static`): the workshop, the offline guide and
+the landing page. The assistant page explains how to run the stack, because a static host has no
+backend. `frontend/vercel.json` holds the settings. In Vercel, import the repository and set
+**Root Directory** to `frontend`, keeping "Include files outside of the Root Directory" enabled
+(the build reads `workshop/` and `docs/`).
