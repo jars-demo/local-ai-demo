@@ -13,8 +13,8 @@ from psycopg import sql
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
 from psycopg_pool import ConnectionPool
 
-from app import migrate
-from app.notes import NoteStore
+from app.db import migrate
+from app.notes.repository import NoteStore
 
 pytestmark = pytest.mark.integration
 

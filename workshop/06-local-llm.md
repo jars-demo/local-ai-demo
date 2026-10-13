@@ -105,7 +105,7 @@ curl -s -X POST http://127.0.0.1:3000/api/ask -H 'Content-Type: application/json
 
 ### 4. Read the prompt
 
-Open `backend/app/assistant.py`. The system message tells the model to answer only from the notes,
+Open `backend/app/assistant/prompts.py`. The system message tells the model to answer only from the notes,
 to cite ids such as `[#3]`, and to say when the notes do not cover the question. Each note is
 labelled `[#id] title`. Long notes are clipped at a word boundary so the prompt fits the context.
 

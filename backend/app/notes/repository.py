@@ -1,44 +1,14 @@
 """Note storage in PostgreSQL: plain, parameterised SQL through a psycopg connection pool.
 
-`NoteStore` is the only module that talks to the database. Routes depend on the `Notes` protocol,
-so tests can swap in an in-memory fake without touching SQL.
+`NoteStore` is the only code that talks to the database. It implements `app.notes.models.Notes`.
 """
-
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Protocol
 
 import psycopg
 from psycopg.rows import class_row
 from psycopg_pool import ConnectionPool
 
-from app.errors import DatabaseUnavailableError
-
-
-@dataclass
-class Note:
-    id: int
-    title: str
-    body: str
-    created_at: datetime
-    updated_at: datetime
-
-
-@dataclass
-class ScoredNote(Note):
-    score: float
-
-
-class Notes(Protocol):
-    def ping(self) -> None: ...
-    def page(self, limit: int, offset: int) -> tuple[list[Note], int]: ...
-    def get(self, note_id: int) -> Note | None: ...
-    def create(self, title: str, body: str) -> Note: ...
-    def update(self, note_id: int, title: str | None, body: str | None) -> Note | None: ...
-    def delete(self, note_id: int) -> bool: ...
-    def search(self, text: str, limit: int) -> list[ScoredNote]: ...
-    def recent(self, limit: int) -> list[Note]: ...
-
+from app.core.errors import DatabaseUnavailableError
+from app.notes.models import Note, ScoredNote
 
 # Retrieval. plainto_tsquery() turns free text into lexemes joined by AND ('deploy' & 'server').
 # A question rarely contains every word of the note it is about, so the AND becomes OR, and

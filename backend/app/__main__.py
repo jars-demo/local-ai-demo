@@ -4,8 +4,8 @@ import os
 
 import uvicorn
 
-from app.config import Settings
-from app.logs import setup_logging
+from app.core.config import Settings
+from app.core.logs import setup_logging
 from app.main import create_app
 
 

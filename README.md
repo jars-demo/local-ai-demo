@@ -126,7 +126,7 @@ so the server can neither build nor pull.
 
 | Promise | Meaning | Enforced by | Verified by |
 |---|---|---|---|
-| **No external AI APIs** | Every answer comes from the model in your container | One model client (`backend/app/llm.py`) for `http://ollama:11434`, with no pull method and no fallback; `OLLAMA_NO_CLOUD=1` | `backend/tests/test_llm.py` |
+| **No external AI APIs** | Every answer comes from the model in your container | One model client (`backend/app/llm/ollama.py`) for `http://ollama:11434`, with no pull method and no fallback; `OLLAMA_NO_CLOUD=1` | `backend/tests/test_llm.py` |
 | **No internet at runtime** | After installation nothing is downloaded | `docker load`, model restore from a file, `--pull never --no-build`, system fonts only | `./scripts/airgap-test.sh --require-offline-host` on a disconnected server |
 | **Strict network isolation** | Even on a connected host, backend, database and model cannot reach the internet | Docker network with `internal: true`; model volume read-only | `./scripts/airgap-test.sh` (checks DNS and TCP from inside, and `ollama pull`) |
 

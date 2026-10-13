@@ -2,8 +2,7 @@
 
 1. Retrieve: PostgreSQL full-text search finds the notes that share words with the question.
    If nothing matches, the most recently edited notes are used instead, and the answer says so.
-2. Prompt: the retrieved notes go into the prompt, each labelled with its id, with an instruction
-   to answer only from them.
+2. Prompt: the retrieved notes go into the prompt (see prompts.py), each labelled with its id.
 3. Infer: one call to the local model through Ollama.
 
 No embeddings, no vector database and no agent loop: for a personal notebook, keyword search in
@@ -14,20 +13,9 @@ import time
 from dataclasses import dataclass, field
 from typing import Literal
 
-from app.llm import LLM, ChatResult
-from app.notes import Note, Notes
-
-ASK_SYSTEM = (
-    "You are a notes assistant. Answer the question using only the notes provided. "
-    "Cite the notes you used by their id in square brackets, for example [#3]. "
-    "If the notes do not contain the answer, say that the notes do not cover it. "
-    "Be concise: at most five sentences."
-)
-
-SUMMARY_SYSTEM = (
-    "You summarise personal notes. Write a summary of the note in two or three sentences, "
-    "then up to three short bullet points with any action items. Use only the note's content."
-)
+from app.assistant.prompts import build_ask_messages, build_summary_messages
+from app.llm.ollama import LLM, ChatResult
+from app.notes.models import Note, Notes
 
 Retrieval = Literal["search", "recent", "none"]
 
@@ -46,33 +34,6 @@ class Answer:
     sources: list[Source] = field(default_factory=list)
     chat: ChatResult | None = None
     retrieval_ms: int = 0
-
-
-def clip(text: str, limit: int) -> str:
-    """Shorten text to `limit` characters on a word boundary, marking the cut."""
-    if len(text) <= limit:
-        return text
-    cut = text[:limit].rsplit(" ", 1)[0]
-    return f"{cut} [...]"
-
-
-def format_note(note: Note, limit: int) -> str:
-    return f"[#{note.id}] {note.title}\n{clip(note.body, limit)}"
-
-
-def build_ask_messages(question: str, notes: list[Note], note_chars: int) -> list[dict]:
-    context = "\n\n".join(format_note(note, note_chars) for note in notes)
-    return [
-        {"role": "system", "content": ASK_SYSTEM},
-        {"role": "user", "content": f"Notes:\n\n{context}\n\nQuestion: {question}"},
-    ]
-
-
-def build_summary_messages(note: Note, note_chars: int) -> list[dict]:
-    return [
-        {"role": "system", "content": SUMMARY_SYSTEM},
-        {"role": "user", "content": format_note(note, note_chars)},
-    ]
 
 
 def answer_question(

@@ -1,7 +1,7 @@
 """Retrieval-then-inference: which notes reach the prompt, and what the API reports."""
 
-from app.assistant import build_ask_messages, clip
-from app.notes import Note
+from app.assistant.prompts import build_ask_messages, clip
+from app.notes.models import Note
 from tests.conftest import BASE_TIME
 
 

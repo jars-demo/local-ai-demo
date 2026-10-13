@@ -3,9 +3,9 @@
 Applied versions are recorded in `schema_migrations`. A transaction-scoped advisory lock means two
 backend replicas starting at once cannot apply the same migration twice.
 
-    python -m app.migrate status
-    python -m app.migrate up
-    python -m app.migrate down --yes     # rolls back the latest migration (may delete data)
+    python -m app.db.migrate status
+    python -m app.db.migrate up
+    python -m app.db.migrate down --yes     # rolls back the latest migration (may delete data)
 """
 
 import argparse
@@ -67,10 +67,10 @@ def downgrade(conn: psycopg.Connection) -> str | None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    from app.config import Settings
-    from app.logs import setup_logging
+    from app.core.config import Settings
+    from app.core.logs import setup_logging
 
-    parser = argparse.ArgumentParser(prog="python -m app.migrate")
+    parser = argparse.ArgumentParser(prog="python -m app.db.migrate")
     parser.add_argument("command", choices=["status", "up", "down"])
     parser.add_argument("--yes", action="store_true", help="confirm a destructive rollback")
     args = parser.parse_args(argv)

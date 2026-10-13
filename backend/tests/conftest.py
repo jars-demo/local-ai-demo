@@ -6,11 +6,11 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import Settings
-from app.errors import LLMUnavailableError
-from app.llm import ChatResult, ModelInfo
+from app.core.config import Settings
+from app.core.errors import LLMUnavailableError
+from app.llm.ollama import ChatResult, ModelInfo
 from app.main import create_app
-from app.notes import Note, ScoredNote
+from app.notes.models import Note, ScoredNote
 
 BASE_TIME = datetime(2026, 1, 1, tzinfo=UTC)
 

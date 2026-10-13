@@ -15,12 +15,14 @@ over clever. It is educational: never present it as production-ready.
 ```text
 compose.yaml                   runtime contract, images only, ships in the bundle
 compose.override.yaml          dev only: build steps, backend-test (integration tests, notes_test DB)
-backend/app/config.py          settings from env (POSTGRES_*, OLLAMA_*), service names not localhost
-backend/app/notes.py           NoteStore: psycopg pool, parameterised SQL, full-text search
-backend/app/llm.py             OllamaClient: chat, info. NO pull method, no fallback provider
-backend/app/assistant.py       retrieval then inference: prompts, fallback to recent notes
-backend/app/routes.py          /api routes; main.py app factory + request logging; errors.py
-backend/app/migrate.py         numbered up/down SQL migrations with an advisory lock
+backend/app/main.py            app factory, request logging; __main__.py runs Uvicorn; api.py mounts /api
+backend/app/core/              config.py (env, service names not localhost), errors.py, logs.py, schemas.py
+backend/app/db/                migrate.py + migrations/ (numbered up/down SQL, advisory lock)
+backend/app/notes/             models.py (Note, Notes protocol), repository.py (parameterised SQL,
+                               full-text search), schemas.py, routes.py (CRUD)
+backend/app/llm/ollama.py      OllamaClient: chat, info. NO pull method, no fallback provider
+backend/app/assistant/         prompts.py, service.py (retrieval then inference), schemas.py, routes.py
+backend/app/health/            /api/health, /api/ready, /api/model
 backend/tests/                 unit tests with fakes; tests/integration needs real PostgreSQL
 frontend/src/lib/              site.ts (versions, nav), chapters.ts (keep in step with workshop/),
                                api.ts (client), measurements.ts (only measured numbers)

@@ -4,8 +4,8 @@ guarantee that it never asks Ollama to download anything."""
 import httpx
 import pytest
 
-from app.errors import LLMTimeoutError, LLMUnavailableError, ModelNotInstalledError
-from app.llm import OllamaClient
+from app.core.errors import LLMTimeoutError, LLMUnavailableError, ModelNotInstalledError
+from app.llm.ollama import OllamaClient
 
 CHAT_REPLY = {
     "model": "qwen3:0.6b",

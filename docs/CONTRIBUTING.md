@@ -5,7 +5,7 @@ Thanks for helping. This is a teaching project: clear beats clever, and every cl
 ## Ground rules
 
 1. **No external AI services.** No code path may call a hosted model, an API key, or download a
-   model at runtime. The only model client is `backend/app/llm.py`, for Ollama on the private
+   model at runtime. The only model client is `backend/app/llm/ollama.py`, for Ollama on the private
    network. `tests/test_llm.py` enforces that it cannot pull.
 2. **Verify before documenting.** Run every command you add to `workshop/` or `docs/` against the
    stack, and paste real output. No invented numbers: measurements go through `docs/measurements.md`.

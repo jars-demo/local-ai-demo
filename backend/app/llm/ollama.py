@@ -11,7 +11,7 @@ from typing import Protocol
 
 import httpx
 
-from app.errors import LLMError, LLMTimeoutError, LLMUnavailableError, ModelNotInstalledError
+from app.core.errors import LLMError, LLMTimeoutError, LLMUnavailableError, ModelNotInstalledError
 
 log = logging.getLogger("app.llm")
 

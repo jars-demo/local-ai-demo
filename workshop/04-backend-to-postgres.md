@@ -18,9 +18,9 @@ database finds the notes relevant to a question, which is the "retrieval" step b
 
 ```text
 backend                                   postgres (volume local-ai-demo-postgres-data)
-app/config.py   host=postgres port=5432 ─►  database "notes", user "notes"
-app/migrate.py  0001_create_notes.up.sql ─► table notes + schema_migrations
-app/notes.py    psycopg pool, plain SQL  ─► SELECT / INSERT / UPDATE / DELETE / full-text search
+app/core/config.py        host=postgres port=5432 ─► database "notes", user "notes"
+app/db/migrate.py         0001_create_notes.up.sql ─► table notes + schema_migrations
+app/notes/repository.py   psycopg pool, plain SQL  ─► SELECT / INSERT / UPDATE / DELETE / search
 ```
 
 ## Prerequisites
@@ -31,7 +31,7 @@ Module 03, stack running.
 
 ### 1. How the backend finds the database
 
-`backend/app/config.py` builds the connection from environment variables that `compose.yaml` sets:
+`backend/app/core/config.py` builds the connection from environment variables that `compose.yaml` sets:
 `POSTGRES_HOST: postgres`, `POSTGRES_DB: notes`, `POSTGRES_USER: notes` and the password from
 `.env`. No address is hard-coded: `postgres` is resolved by Docker's DNS (module 05).
 
@@ -42,7 +42,7 @@ docker compose exec postgres psql -U notes -d notes -c "SELECT version, applied_
 ```
 
 > **What it does:** Shows which schema migrations the backend has applied.
-> **Why:** The backend applies pending files from `backend/app/migrations/` at startup, inside one
+> **Why:** The backend applies pending files from `backend/app/db/migrations/` at startup, inside one
 > transaction, holding a PostgreSQL advisory lock so two backends cannot race. Each version is
 > recorded once.
 > **Expected:**
@@ -53,7 +53,7 @@ docker compose exec postgres psql -U notes -d notes -c "SELECT version, applied_
 >  0001_create_notes | 2026-10-13 12:44:26.366103+00
 > ```
 
-Every migration has an `up` and a `down` file. `python -m app.migrate down --yes` rolls back the
+Every migration has an `up` and a `down` file. `python -m app.db.migrate down --yes` rolls back the
 latest one, and refuses without `--yes`, because dropping a table deletes data.
 
 ### 3. The table
@@ -72,7 +72,7 @@ docker compose exec postgres psql -U notes -d notes -c '\d notes'
 
 ### 4. Parameterised SQL
 
-Open `backend/app/notes.py`. Every query passes values separately from the SQL text:
+Open `backend/app/notes/repository.py`. Every query passes values separately from the SQL text:
 
 ```python
 cur.execute("SELECT id, title, body, created_at, updated_at FROM notes WHERE id = %s", (note_id,))
@@ -151,7 +151,7 @@ docker compose --profile test run --rm --build backend-test
 1. Ask the assistant `When are we deploying?` with a note that says `We deploy on Fridays`. Run
    `plainto_tsquery` on both phrases: why do they match?
 2. Ask a question that shares no words with any note. Which notes does `/api/ask` use, and what does
-   the `retrieval` field say? (Hint: `backend/app/assistant.py`.)
+   the `retrieval` field say? (Hint: `backend/app/assistant/service.py`.)
 3. Write a migration `0002_add_pinned.up.sql` that adds `pinned BOOLEAN NOT NULL DEFAULT false`, and
    its `down` file. Restart the backend and check `schema_migrations`.
 
@@ -160,7 +160,7 @@ docker compose --profile test run --rm --build backend-test
 | Symptom | Cause | Fix |
 |---|---|---|
 | `password authentication failed for user "notes"` | `.env` password differs from the one the volume was created with | Restore the original password. Changing it requires `ALTER USER` inside PostgreSQL |
-| Backend restarts with `relation "notes" does not exist` in `/api/ready` | `MIGRATE_ON_START=false` and migrations never ran | `docker compose exec backend python -m app.migrate up` |
+| Backend restarts with `relation "notes" does not exist` in `/api/ready` | `MIGRATE_ON_START=false` and migrations never ran | `docker compose exec backend python -m app.db.migrate up` |
 | `psql: error: connection to server on socket` | You ran `psql` on the host, not in the container | Use `docker compose exec postgres psql ...` |
 | Integration tests skip | `DATABASE_URL` not set | Run them through the `backend-test` service, which sets it |
 

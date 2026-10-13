@@ -133,7 +133,7 @@ cd /opt/local-ai-demo-bundle-1.0.0-linux-amd64
 > [!CAUTION]
 > A rollback across a database migration needs the old schema. Before an update that adds a
 > migration, back up (step 5). The migration runner can undo the latest migration with
-> `docker compose exec backend python -m app.migrate down --yes`, but `down` may delete data.
+> `docker compose exec backend python -m app.db.migrate down --yes`, but `down` may delete data.
 
 ### 5. Back up and restore notes
 

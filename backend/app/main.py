@@ -13,12 +13,13 @@ import psycopg
 from fastapi import FastAPI, Request
 from psycopg_pool import ConnectionPool
 
-from app import migrate
-from app.config import Settings
-from app.errors import install_error_handlers
-from app.llm import LLM, OllamaClient
-from app.notes import Notes, NoteStore
-from app.routes import router
+from app.api import router
+from app.core.config import Settings
+from app.core.errors import install_error_handlers
+from app.db import migrate
+from app.llm.ollama import LLM, OllamaClient
+from app.notes.models import Notes
+from app.notes.repository import NoteStore
 
 log = logging.getLogger("app")
 

@@ -17,7 +17,7 @@ is on disk: a manifest and a few content-addressed files you can verify with `sh
 ## Architecture
 
 ```text
-backend/app/llm.py ──HTTP──► ollama:11434
+backend/app/llm/ollama.py ──HTTP──► ollama:11434
    GET  /api/version     which Ollama
    GET  /api/tags        which models are installed      ──► readiness
    POST /api/show        model details (context length)  ──► /api/model
