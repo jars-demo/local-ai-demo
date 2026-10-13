@@ -1,0 +1,45 @@
+[project]
+name = "local-ai-demo-backend"
+version = "1.0.0"
+description = "AI Notes Assistant API: notes in PostgreSQL, answers from a local model served by Ollama."
+license = "MIT"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi==0.143.0",
+    "uvicorn==0.54.0",
+    "psycopg[binary]==3.3.6",
+    "psycopg-pool==3.3.3",
+    "httpx==0.28.1",
+    "pydantic==2.14.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+    "ruff==0.17.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -m 'not integration'"
+filterwarnings = [
+    # Starlette 1.x nudges TestClient users towards httpx2; httpx is still supported.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
+markers = [
+    "integration: needs a real PostgreSQL (DATABASE_URL); run with -m integration",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "S"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106"]
