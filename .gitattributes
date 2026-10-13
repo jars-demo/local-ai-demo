@@ -1,0 +1,4 @@
+# Shell scripts, Compose files and Dockerfiles run on Linux: always LF, even on Windows checkouts.
+* text=auto eol=lf
+*.png binary
+*.ico binary

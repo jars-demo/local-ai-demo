@@ -1,0 +1,13 @@
+# Build context for frontend/Dockerfile (the repository root). Allow-list: the site needs only the
+# frontend source, the workshop modules and the docs. Everything else (secrets, bundles, Python
+# virtualenvs, model files) never enters the context.
+*
+!frontend
+!workshop
+!docs
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/next-env.d.ts
+**/.env
+**/.env.*
